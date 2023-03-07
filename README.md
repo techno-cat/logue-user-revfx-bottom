@@ -3,8 +3,10 @@ Long reverberation effect,
 can use as `USER REVERB FX`.
 
 # Parameters
-- depth
-- (unused)
+- time  
+Reverberation time.
+- depth  
+Unused.
 - shift depth  
 dry/wet mixing ratio.
 
