@@ -243,6 +243,9 @@ void REVFX_PROCESS(float *xn, uint32_t frames)
 void REVFX_RESUME(void)
 {
   buf_clr_u32(
+    (uint32_t * __restrict__)s_reverb_ram_pre_buffer,
+    LCW_REVERB_PRE_SIZE );
+  buf_clr_u32(
     (uint32_t * __restrict__)s_reverb_ram_comb_buffer,
     LCW_REVERB_COMB_BUFFER_TOTAL );
   buf_clr_u32(
