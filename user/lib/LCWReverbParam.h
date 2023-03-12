@@ -12,8 +12,6 @@ extern "C" {
 
 // 一時バッファと初期反射バッファ
 #define LCW_REVERB_PRE_SIZE (1<<12)
-#define LCW_REVERB_PRE_MAX (2)
-#define LCW_REVERB_PRE_BUFFER_TOTAL (LCW_REVERB_PRE_SIZE * LCW_REVERB_PRE_MAX)
 
 #define LCW_REVERB_COMB_SIZE (1<<12)
 #define LCW_REVERB_COMB_MAX (4)
