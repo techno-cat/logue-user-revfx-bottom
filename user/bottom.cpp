@@ -132,19 +132,18 @@ void inputCombLines(int32_t *outL, int32_t in, LCWDelayBuffer *comb)
   int32_t out[LCW_REVERB_COMB_MAX];
   for (int32_t j=0; j<LCW_REVERB_COMB_MAX; j++) {
     LCWDelayBuffer *p = comb + j;
-    const int32_t z = iir2_input(
+    p->pointer = LCW_DELAY_BUFFER_DEC(p);
+    const int32_t zn = iir2_input(
       &s_combIir2[j], LCW_DELAY_BUFFER_LUT(p, p->offset) );
 
     // 軽量ver.
     int32_t tmp = 0;
-    if ( z != -1 ) {
-      tmp = (int32_t)( ((int64_t)z * p->fbGain) >> 15 );
+    if ( zn != -1 ) {
+      tmp = (int32_t)( ((int64_t)zn * p->fbGain) >> 15 );
     }
 
-    p->pointer = LCW_DELAY_BUFFER_DEC(p);
     p->buffer[p->pointer] = in + tmp;
-
-    out[j] = z;
+    out[j] = zn;
   }
 
   // memo:
@@ -154,15 +153,12 @@ void inputCombLines(int32_t *outL, int32_t in, LCWDelayBuffer *comb)
 
 __fast_inline int32_t inputAllPass(int32_t in, LCWAPFBuffer *p)
 {
-  const int32_t z_out = LCW_DELAY_BUFFER_LUT(p, p->offset);
-  const int64_t in2 = in - (((int64_t)z_out * p->gain) >> 16);
-
-  const int32_t out = z_out + (int32_t)((in2 * p->gain) >> 16);
-
   p->pointer = LCW_DELAY_BUFFER_DEC(p);
-  p->buffer[p->pointer] = in2;
+  const int32_t zn = LCW_DELAY_BUFFER_LUT(p, p->offset);
+  const int64_t in2 = in - (((int64_t)zn * p->gain) >> 16);
 
-  return out;
+  p->buffer[p->pointer] = in2;
+  return zn + (int32_t)((in2 * p->gain) >> 16);
 }
 
 __fast_inline int32_t inputAllPass2(int32_t in, LCWAPFBuffer *buffer)
@@ -171,21 +167,19 @@ __fast_inline int32_t inputAllPass2(int32_t in, LCWAPFBuffer *buffer)
 
   for (int32_t j=0; j<LCW_REVERB_AP_MAX; j+=2) {
     LCWAPFBuffer *p = buffer + j;
+    p->pointer = LCW_DELAY_BUFFER_DEC(p);
+    int32_t zn = LCW_DELAY_BUFFER_LUT(p, p->offset);
 
     // 内側の処理
-    const int32_t innerOut = inputAllPass(
-      LCW_DELAY_BUFFER_LUT(p, p->offset), p + 1 );
+    zn = inputAllPass( zn, p + 1 );
 
     // 外側の処理
     {
       const int64_t in = out;
-      const int32_t z_out = innerOut;
-      const int64_t in2 = in - (((int64_t)z_out * p->gain) >> 16);
+      const int64_t in2 = in - (((int64_t)zn * p->gain) >> 16);
 
-      out = z_out + (int32_t)((in2 * p->gain) >> 16);
-
-      p->pointer = LCW_DELAY_BUFFER_DEC(p);
       p->buffer[p->pointer] = in2;
+      out = zn + (int32_t)((in2 * p->gain) >> 16);
     }
   }
 
